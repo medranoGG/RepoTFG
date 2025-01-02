@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  tfg_app:
+    build: .
+    container_name: tfg_app_container
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .:/app
+      
