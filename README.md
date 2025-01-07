@@ -1,4 +1,4 @@
-# Proyecto de API con Docker
+# Trabajo Fin de Grado - Gabriel Medrano
 
 Este proyecto es una API que acepta una URL mediante una solicitud HTTP POST, la procesa y devuelve un resultado. Todo está empaquetado y configurado para ejecutarse dentro de un contenedor Docker.
 
