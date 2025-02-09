@@ -24,46 +24,7 @@ def cargar_datos():
     return x, y
 
 
-def eliminarFilasConVacios(data, limite=15):
-
-    filas_antes = data.shape[0]
-    data_limpio = data.dropna(thresh=len(data.columns) - limite)
-    filas_despues = data_limpio.shape[0]
-    filas_eliminadas = filas_antes - filas_despues
-    print(f"Número de filas eliminadas: {filas_eliminadas}")
-    return data_limpio
-
-
-def rellenarConModa(data):
-
-    total_rellenados = 0
-    for column in data.columns:
-
-        nulos_antes = data[column].isnull().sum()
-        if nulos_antes > 0:
-            moda = data[column].mode()[0]
-            data[column] = data[column].fillna(moda)
-            total_rellenados += nulos_antes
-
-    print(f"Total de valores nulos rellenados: {total_rellenados}")
-    return data
-
-
-def eliminarColumnasRedundantes(data, limite=0.75):
-
-    corr_matrix = data.corr().abs()
-    upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
-    to_drop = [column for column in upper.columns if any(upper[column] > limite)]
-
-    if to_drop:
-        print(f"Columnas eliminadas: {', '.join(to_drop)}")
-    else:
-        print("No se eliminaron columnas redundantes.")
-
-    return data.drop(columns=to_drop, axis=1)
-
 def analisisPCA(data, explained_pca_ratio=0.90):
-
     scaler = StandardScaler(with_mean=True, with_std=True)
     data_scaled = scaler.fit_transform(data)
     pca = PCA().fit(data_scaled)
@@ -74,7 +35,7 @@ def analisisPCA(data, explained_pca_ratio=0.90):
     plt.xlim(0, len(pca.explained_variance_ratio_))
     plt.axhline(y=explained_pca_ratio, color='black', linestyle='--')
     plt.xlabel('Número de componentes')
-    plt.ylabel('Varianza explicada acumulada')
+    plt.ylabel('Varianza total')
     plt.title('Análisis PCA - Varianza explicada')
     plt.show()
     pca_sk = PCA(n_components=explained_pca_ratio)
@@ -83,9 +44,7 @@ def analisisPCA(data, explained_pca_ratio=0.90):
     return data_pca, pca_sk, scaler
 
 
-
 def dibujarMatrizCorrelacion(data):
-
     corr = data.corr()
     plt.figure(figsize=(10, 8))
     sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", cbar=True)
@@ -94,7 +53,6 @@ def dibujarMatrizCorrelacion(data):
 
 
 def preparar_datos(x, y, test_size=0.3, random_state=219):
-
     x_train, x_test, y_train, y_test = train_test_split(
         x, y.values.ravel(), test_size=test_size, random_state=random_state, stratify=y
     )
@@ -129,7 +87,6 @@ def svm():
 
 def train(algorithm, x_train, y_train):
     algorithm.fit(x_train, y_train)
-    y_train_pred = algorithm.predict(x_train)
     return algorithm
 
 
@@ -141,7 +98,6 @@ def test(algorithm, x_test, y_test):
     print(f"Precisión (Precision): {precision:.10f}")
     print(f"Sensibilidad (Recall): {recall:.10f}")
     print(f"Puntaje F1 (F1-score): {f1:.10f}")
-
     cm = confusion_matrix(y_test, y_test_pred)
     conf_matrix_list = np.ndarray.tolist(cm)
     table = PrettyTable()
@@ -151,15 +107,7 @@ def test(algorithm, x_test, y_test):
     print("Confusion Matrix:")
     print(table)
 
-    #plt.figure(figsize=(8, 6))
-    #sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=np.unique(y_test), yticklabels=np.unique(y_test))
-    #plt.xlabel("Prediccion")
-    #plt.ylabel("Real")
-    #plt.show()
-
     return algorithm
-
-
 
 
 def principal_program():
@@ -167,20 +115,6 @@ def principal_program():
     print("Cargando datos...")
     x, y = cargar_datos()
     print("Datos cargados.\n")
-
-    #print("Eliminando filas vacías...")
-    #x = eliminarFilasConVacios(x)
-    #print("Filas redundantes eliminadas.\n")
-
-    #print("Rellenando columnas con valores vacíos...")
-    #x = rellenarConModa(x)
-    #print("Columnas rellenas.\n")
-
-    #print(x)
-    #print("Eliminando columnas redundantes...")
-    #x = eliminarColumnasRedundantes(x) # Tiene mas sentido hacer el PCA solo
-    #columns = x.columns.tolist()
-    #print("Total columnas tras eliminar:" + str(x.columns.size) + "\n")
 
     print("Dibujando matriz de correlación...")
     dibujarMatrizCorrelacion(x)
@@ -190,7 +124,6 @@ def principal_program():
     x, pca, scaler = analisisPCA(x)
     print("PCA aplicado.\n")
 
-
     print("Dividiendo dataset...")
     x_train, x_test, y_train, y_test = preparar_datos(x, y)
     print('\tDataset original: ', x.shape, y.shape)
@@ -199,11 +132,11 @@ def principal_program():
     print("Dataset dividido.\n")
 
     print("Seleccionando algoritmo...")
-    #algorithm = naiveBayes()  # 0.8489599035
-    #algorithm = knn() # 0.9580946639
-    #algorithm = svm() # 0.9231233042
-    #algorithm = randomForest() # 0.9532710280
-    algorithm = xgboost() # 0.9611094362
+    #algorithm = naiveBayes()
+    #algorithm = knn()
+    #algorithm = svm()
+    #algorithm = randomForest()
+    algorithm = xgboost()
 
     print("Entrenando modelo...")
     algorithm = train(algorithm, x_train, y_train)
@@ -218,4 +151,3 @@ def principal_program():
 
 if __name__ == '__main__':
     principal_program()
-
